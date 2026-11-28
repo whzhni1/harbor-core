@@ -1,0 +1,33 @@
+[target.i586-unknown-linux-musl]
+rustflags = ["-C", "target-feature=+sse,+sse2"]
+
+[target.aarch64-unknown-linux-musl]
+linker = "aarch64-linux-musl-gcc"
+
+[target.armv7-unknown-linux-musleabihf]
+linker = "armv7l-linux-musleabihf-gcc"
+
+[target.mipsel-unknown-linux-musl]
+linker = "mipsel-linux-musl-gcc"
+rustflags = [
+    "-C", "target-feature=+crt-static",
+    "-C", "link-self-contained=no",
+    "-C", "relocation-model=static",
+    "-C", "link-arg=-L/usr/local/harbor-libunwind",
+]
+
+[target.mips-unknown-linux-musl]
+linker = "mips-linux-musl-gcc"
+rustflags = [
+    "-C", "target-feature=+crt-static",
+    "-C", "link-self-contained=no",
+    "-C", "relocation-model=static",
+    "-C", "link-arg=-L/usr/local/harbor-libunwind",
+]
+
+[target.armv5te-unknown-linux-musleabi]
+linker = "arm-linux-musleabi-gcc"
+
+[target.riscv64gc-unknown-linux-musl]
+linker = "riscv64-linux-musl-gcc"
+rustflags = ["-C", "target-feature=+crt-static"]

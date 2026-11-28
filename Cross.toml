@@ -1,0 +1,16 @@
+[build.env]
+passthrough = ["CC", "CARGO_TERM_COLOR", "RUST_BACKTRACE", "CROSS_BUILD_STD", "RUSTFLAGS"]
+
+[target.armv5te-unknown-linux-musleabi]
+image = "ghcr.io/cross-rs/armv5te-unknown-linux-musleabi:main"
+
+[target.riscv64gc-unknown-linux-musl]
+image = "ghcr.io/cross-rs/riscv64gc-unknown-linux-musl:main"
+
+[target.mipsel-unknown-linux-musl]
+image = "ghcr.io/cross-rs/mipsel-unknown-linux-musl:main"
+pre-build = ['set -e; gcc=$(command -v mipsel-linux-muslsf-gcc || command -v mipsel-unknown-linux-musl-gcc || command -v mipsel-linux-musl-gcc || command -v gcc); libdir=$(dirname $($gcc -print-libgcc-file-name)); test -f $libdir/libgcc_eh.a; mkdir -p /usr/local/harbor-libunwind; cp -f $libdir/libgcc_eh.a /usr/local/harbor-libunwind/libunwind.a; ln -sfn libgcc_eh.a $libdir/libunwind.a || true']
+
+[target.mips-unknown-linux-musl]
+image = "ghcr.io/cross-rs/mips-unknown-linux-musl:main"
+pre-build = ['set -e; gcc=$(command -v mips-linux-muslsf-gcc || command -v mips-unknown-linux-musl-gcc || command -v mips-linux-musl-gcc || command -v gcc); libdir=$(dirname $($gcc -print-libgcc-file-name)); test -f $libdir/libgcc_eh.a; mkdir -p /usr/local/harbor-libunwind; cp -f $libdir/libgcc_eh.a /usr/local/harbor-libunwind/libunwind.a; ln -sfn libgcc_eh.a $libdir/libunwind.a || true']

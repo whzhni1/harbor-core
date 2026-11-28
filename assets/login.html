@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg?v=__HARBOR_ASSET_VERSION__">
+<title>Harbor File Pro</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0f172a url('/wallpapers/login') center / cover fixed;
+    color: #e2e8f0; padding: 24px; -webkit-font-smoothing: antialiased;
+  }
+  .login-wallpaper {
+    position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+  }
+  .login-wallpaper[hidden] { display: none; }
+  .login-wallpaper img {
+    width: 100%; height: 100%; object-fit: cover; opacity: .48;
+  }
+  .card {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 380px; background: rgba(15, 23, 42, .72); border: 1px solid rgba(148, 163, 184, .22);
+    border-radius: 18px; padding: 30px 26px 24px; box-shadow: 0 24px 60px rgba(2, 6, 23, .55);
+    backdrop-filter: blur(14px);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+  .logo {
+    width: 40px; height: 40px; border-radius: 12px; flex: none;
+    background: linear-gradient(140deg, #38bdf8, #2563eb 60%, #7c3aed);
+    display: grid; place-items: center; font-weight: 700; font-size: 18px; color: #fff;
+  }
+  h1 { font-size: 17px; margin: 0; font-weight: 600; letter-spacing: .2px; }
+  .sub { font-size: 12px; color: #94a3b8; margin-top: 3px; }
+  label { display: block; font-size: 12px; color: #cbd5e1; margin: 16px 0 6px; }
+  input {
+    width: 100%; padding: 11px 13px; border-radius: 10px; font-size: 14px;
+    border: 1px solid rgba(148, 163, 184, .3); background: rgba(2, 6, 23, .55); color: #f8fafc;
+    outline: none; transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus { border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56, 189, 248, .18); }
+  button {
+    width: 100%; margin-top: 22px; padding: 11px 14px; border: 0; border-radius: 10px;
+    font-size: 14px; font-weight: 600; color: #fff; cursor: pointer;
+    background: linear-gradient(140deg, #2563eb, #1d4ed8); transition: filter .15s;
+  }
+  button:hover { filter: brightness(1.08); }
+  button:disabled { opacity: .6; cursor: default; }
+  .message { margin-top: 14px; font-size: 12.5px; min-height: 18px; color: #fca5a5; }
+  .message.info { color: #7dd3fc; }
+  .message.error { color: #f87171; font-weight: 600; }
+  .foot { display: block; margin-top: 18px; font-size: 15px; color: #3b82f6; text-align: center; }
+  .foot a { color: inherit; text-decoration: none; }
+  .foot a:hover { color: #60a5fa; text-decoration: underline; }
+  .lang-switch {
+    position: fixed; top: 14px; right: 14px; z-index: 3;
+    appearance: none; -webkit-appearance: none;
+    padding: 7px 26px 7px 11px; border-radius: 9px; font-size: 13px; cursor: pointer;
+    border: 1px solid rgba(148, 163, 184, .3); background: rgba(15, 23, 42, .72); color: #e2e8f0;
+    background-image: linear-gradient(45deg, transparent 50%, #94a3b8 50%), linear-gradient(135deg, #94a3b8 50%, transparent 50%);
+    background-position: calc(100% - 15px) calc(50% + 1px), calc(100% - 10px) calc(50% + 1px);
+    background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+    outline: none;
+  }
+  .lang-switch:focus { border-color: #38bdf8; }
+  .lang-switch option { background: #0f172a; color: #e2e8f0; }
+</style>
+</head>
+<body>
+<select id="lang_switch" class="lang-switch" aria-label="Language"></select>
+<div class="login-wallpaper" id="login_wallpaper" hidden aria-hidden="true"><img id="login_wallpaper_image" alt=""></div>
+<form class="card" id="form" autocomplete="on">
+  <div class="brand">
+    <div class="logo">H</div>
+    <div>
+      <h1>Harbor File Pro</h1>
+      <div class="sub" id="subtitle" data-i18n="Sign in to continue">Sign in to continue</div>
+    </div>
+  </div>
+  <label for="username" id="username_label" data-i18n="Username">Username</label>
+  <input type="text" id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+  <label for="password" id="password_label" data-i18n="Password">Password</label>
+  <input type="password" id="password" name="password" autocomplete="current-password" autofocus required>
+  <div id="totp_wrap" style="display:none">
+    <label for="totp" data-i18n="Two-factor code">Two-factor code</label>
+    <input type="text" id="totp" name="totp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456">
+  </div>
+  <div id="confirm_wrap" style="display:none">
+    <label for="confirm" data-i18n="Repeat password">Repeat password</label>
+    <input type="password" id="confirm" name="confirm" autocomplete="new-password">
+  </div>
+  <button type="submit" id="submit" data-i18n="Sign in">Sign in</button>
+  <div class="message" id="message"></div>
+  <a class="foot" id="version" href="https://github.com/whzhni1/harbor-core" target="_blank" rel="noopener">harbor-core</a>
+</form>
+<script src="assets/i18n.js?v=__HARBOR_ASSET_VERSION__"></script>
+<script>
+(function () {
+   
+   
+  var T = window.HARBOR_T || function (text) { return text; };
+  function setText(id, source) {
+    var node = document.getElementById(id);
+    if (node) node.textContent = T(source);
+  }
+  function applyStaticTranslations() {
+    var nodes = document.querySelectorAll('[data-i18n]');
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].textContent = T(nodes[i].getAttribute('data-i18n'));
+    }
+    document.documentElement.lang = window.HARBOR_LANG || (window.localStorage && window.localStorage.getItem('harbor.lang')) || navigator.language || 'en';
+  }
+  applyStaticTranslations();
+   
+  setTimeout(applyStaticTranslations, 250);
+  document.addEventListener('harbor:i18n', applyStaticTranslations);
+
+  var langSwitch = document.getElementById('lang_switch');
+  function populateLangSwitch() {
+    var langs = window.HARBOR_LANGS || [];
+    if (!langs.length || !langSwitch) return;
+    var current = (window.harborLanguageChoice && window.harborLanguageChoice()) || 'auto';
+    langSwitch.textContent = '';
+    var autoOption = document.createElement('option');
+    autoOption.value = 'auto';
+    autoOption.textContent = T('Auto');
+    langSwitch.appendChild(autoOption);
+    for (var i = 0; i < langs.length; i++) {
+      var option = document.createElement('option');
+      option.value = langs[i].code;
+      option.textContent = langs[i].label;
+      langSwitch.appendChild(option);
+    }
+    langSwitch.value = current;
+    if (langSwitch.value !== current) langSwitch.value = 'auto';
+  }
+  document.addEventListener('harbor:i18n', populateLangSwitch);
+  populateLangSwitch();
+  langSwitch.addEventListener('change', function () {
+    var value = langSwitch.value;
+    if (!value) return;
+    if (value === 'auto') {
+      fetch('api/v1/language?lang=auto', {
+        method: 'POST',
+        headers: { 'X-Harbor-Language': '1' },
+        credentials: 'same-origin'
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.code === 0) {
+            window.harborAutoLanguage().then(function (applied) {
+              if (!applied) window.location.reload();
+            });
+          } else {
+            populateLangSwitch();
+            setMessage((res && res.message) || T('Cannot reach the server'), 'error');
+          }
+        })
+        .catch(function () { setMessage(T('Cannot reach the server'), 'error'); });
+      return;
+    }
+    fetch('api/v1/language?lang=' + encodeURIComponent(value), {
+      method: 'POST',
+      headers: { 'X-Harbor-Language': '1' },
+      credentials: 'same-origin'
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (res && res.code === 0) {
+          window.harborApplyLanguage(value).then(function (applied) {
+            if (!applied) window.location.reload();
+          });
+        } else setMessage((res && res.message) || T('Cannot reach the server'), 'error');
+      })
+      .catch(function () { setMessage(T('Cannot reach the server'), 'error'); });
+  });
+
+  var form = document.getElementById('form');
+  var message = document.getElementById('message');
+  var submit = document.getElementById('submit');
+  var wrap = document.getElementById('confirm_wrap');
+  var totp_wrap = document.getElementById('totp_wrap');
+  var needsSetup = false;
+  var lockoutTimer = null;
+  var lockoutEnd = 0;
+
+  function stopLockoutTimer() {
+    if (lockoutTimer) {
+      clearInterval(lockoutTimer);
+      lockoutTimer = null;
+    }
+  }
+
+  function updateLockoutDisplay() {
+    var now = Math.floor(Date.now() / 1000);
+    var remaining = lockoutEnd - now;
+    if (remaining <= 0) {
+      stopLockoutTimer();
+      submit.disabled = false;
+      setMessage('', false);
+      return;
+    }
+    submit.disabled = true;
+    var mins = Math.floor(remaining / 60);
+    var secs = remaining % 60;
+    setMessage('密码错误次数过多，还剩 ' + mins + '分' + secs + '秒 后可重试', 'error');
+  }
+
+  function setMessage(text, info) {
+    message.textContent = text || '';
+    message.className = 'message' + (info === 'error' ? ' error' : (info ? ' info' : ''));
+  }
+
+  fetch('api/v1/auth_status', { credentials: 'same-origin' })
+    .then(function (r) { return r.json(); })
+    .then(function (res) {
+      var data = (res && res.data) || {};
+      var wallpaper = data.login_wallpaper || {};
+      var wallpaperImage = document.getElementById('login_wallpaper_image');
+      var wallpaperLayer = document.getElementById('login_wallpaper');
+      if (wallpaper.enabled && wallpaper.url && wallpaperImage && wallpaperLayer) {
+        try {
+          var wallpaperUrl = new URL(wallpaper.url, window.location.href);
+          if (wallpaperUrl.protocol === 'https:' || wallpaperUrl.protocol === 'http:') {
+            wallpaperImage.onload = function () { wallpaperLayer.hidden = false; };
+            wallpaperImage.src = wallpaperUrl.href;
+          }
+        } catch (error) { }
+      }
+      needsSetup = !!data.needs_setup;
+      if (data.totp_enabled) totp_wrap.style.display = '';
+      if (needsSetup) {
+        document.getElementById('username_label').style.display = 'none';
+        document.getElementById('username').style.display = 'none';
+        document.getElementById('password_label').style.display = 'none';
+        document.getElementById('password').style.display = 'none';
+        wrap.style.display = 'none';
+        submit.style.display = 'none';
+        setText('subtitle', 'Local initialization required');
+        setMessage(T('Run harbor-core init-auth on the device to configure authentication.'), true);
+      }
+      if (data.version) document.getElementById('version').textContent = 'harbor-core ' + data.version;
+    })
+    .catch(function () { });
+
+  if (/[?&]expired=1(&|$)/.test(window.location.search)) {
+    setMessage(T('Your session expired. Sign in again.'), true);
+  }
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    if (needsSetup) {
+      setMessage(T('Run harbor-core init-auth on the device to configure authentication.'));
+      return;
+    }
+    var password = document.getElementById('password').value;
+    if (!password) { setMessage(T('Enter the password')); return; }
+    submit.disabled = true;
+    setMessage(T('Signing in…'), true);
+    var username = document.getElementById('username').value.trim();
+    var totp = document.getElementById('totp').value;
+    var body = 'username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password);
+    if (totp) body += '&totp=' + encodeURIComponent(totp);
+    fetch('login', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (res && res.code === 0) { window.location.replace('./'); return; }
+        stopLockoutTimer();
+        submit.disabled = false;
+        if (res && res.code === 2) {
+          totp_wrap.style.display = '';
+          document.getElementById('totp').focus();
+          setMessage((res && res.message) || T('Two-factor code required'), true);
+          return;
+        }
+        var msg = (res && res.message) || T('Sign in failed');
+        var data = res && res.data;
+        if (data && data.remaining_attempts !== undefined && data.remaining_attempts > 0) {
+          msg = '密码错误，还可输入 ' + data.remaining_attempts + ' 次';
+        } else if (data && data.locked_until !== undefined) {
+          lockoutEnd = data.locked_until;
+          if (data.is_permanent) {
+            msg = '账户已锁定';
+            submit.disabled = true;
+          } else {
+            msg = '密码错误次数过多，请稍后重试';
+            updateLockoutDisplay();
+            lockoutTimer = setInterval(updateLockoutDisplay, 1000);
+          }
+        }
+        setMessage(msg, 'error');
+      })
+      .catch(function () {
+        stopLockoutTimer();
+        submit.disabled = false;
+        setMessage(T('Cannot reach the server'), 'error');
+      });
+  });
+})();
+</script>
+</body>
+</html>

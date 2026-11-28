@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Terminal</title>
+<link rel="stylesheet" href="./vendor/xterm/xterm.css?v=__HARBOR_ASSET_VERSION__">
+<style>
+html, body {
+    height: 100%;
+    margin: 0;
+    background: #05070a;
+    overflow: hidden;
+    overscroll-behavior: contain;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+#term_container {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+}
+#term_container .xterm-viewport {
+    scrollbar-width: none;
+}
+#term_container .xterm-viewport::-webkit-scrollbar {
+    display: none;
+}
+#term_container .xterm {
+    touch-action: pinch-zoom;
+    overscroll-behavior: contain;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+#term_container.xterm-touch-selecting,
+#term_container.xterm-touch-selecting .xterm-screen {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+.term_shield {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    touch-action: pinch-zoom;
+}
+@media (pointer: fine) {
+    .term_shield {
+        display: none;
+    }
+}
+#term_menu {
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    z-index: 40;
+    display: none;
+    flex-direction: column;
+    min-width: 164px;
+    gap: 0;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.82);
+    border-radius: 8px;
+    padding: 5px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+#term_menu button {
+    background: #222;
+    color: #fff;
+    border: 0;
+    border-radius: 0;
+    padding: 9px 14px;
+    font-size: 15px;
+    line-height: 1.2;
+    width: 100%;
+    text-align: left;
+}
+#term_menu button:active {
+    background: #444;
+}
+.term_handle {
+    position: fixed;
+    display: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #4a9eff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+    transform: translate(-50%, -50%);
+    z-index: 44;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    pointer-events: auto;
+}
+.term_handle.on {
+    display: block;
+}
+.term_handle::before {
+    content: '';
+    position: absolute;
+    left: -14px;
+    top: -14px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    touch-action: none;
+}
+
+#term_menu button:disabled {
+    opacity: 0.4;
+}
+#term_banner {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    z-index: 42;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    transform: translateX(-50%);
+    background: rgba(20, 24, 32, 0.94);
+    border: 1px solid #3a4354;
+    border-radius: 999px;
+    padding: 7px 14px;
+    color: #dbe4ff;
+    font-size: 13px;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+#term_banner.show {
+    display: flex;
+}
+#term_banner button {
+    background: #2b6cb0;
+    color: #fff;
+    border: 0;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 13px;
+}
+#term_keys {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--kb-inset, 0px) + env(safe-area-inset-bottom, 0px));
+    z-index: 40;
+    display: none;
+    align-items: stretch;
+    height: 46px;
+    background: #10141c;
+    border-top: 1px solid #2a3242;
+}
+#term_keys_scroll {
+    display: flex;
+    flex: 1 1 auto;
+    gap: 6px;
+    align-items: center;
+    padding: 0 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+#term_keys_scroll::after {
+    content: '';
+    flex: 0 0 36px;
+}
+#term_keys_scroll::-webkit-scrollbar {
+    display: none;
+}
+#term_keys_scroll button {
+    flex: 0 0 auto;
+    min-width: 40px;
+    height: 34px;
+    padding: 0 10px;
+    background: #1c2230;
+    color: #d7deeb;
+    border: 1px solid #333d51;
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 1;
+    white-space: nowrap;
+}
+#term_keys_scroll button.term-mod.active {
+    background: #2b6cb0;
+    border-color: #4a9eff;
+    color: #fff;
+}
+#term_keys_scroll button:active {
+    background: #2a3346;
+}
+#term_keys_scroll button.term-mod.active:active {
+    background: #2b6cb0;
+}
+@media (pointer: coarse) {
+    #term_keys {
+        display: flex;
+    }
+    #term_container {
+        bottom: calc(46px + var(--kb-inset, 0px) + env(safe-area-inset-bottom, 0px));
+    }
+}
+</style>
+</head>
+<body>
+<div id="term_container"></div>
+<div id="term_menu" role="toolbar">
+    <button type="button" data-action="copy">Copy</button>
+    <button type="button" data-action="paste">Paste</button>
+    <button type="button" data-action="selectAll">Select All</button>
+    <button type="button" data-action="dismiss">Cancel</button>
+</div>
+<div class="term_handle" id="term_handle_start"></div>
+<div class="term_handle" id="term_handle_end"></div>
+<div id="term_banner">
+    <span id="term_banner_text">Connection lost, reconnecting…</span>
+    <button type="button" id="term_banner_action" hidden>Reconnect</button>
+</div>
+<div id="term_keys">
+    <div id="term_keys_scroll">
+        <button type="button" data-key="esc">Esc</button>
+        <button type="button" data-key="ctrl" class="term-mod">Ctrl</button>
+        <button type="button" data-key="alt" class="term-mod">Alt</button>
+        <button type="button" data-key="tab">Tab</button>
+        <button type="button" data-key="left" aria-label="Left">←</button>
+        <button type="button" data-key="up" aria-label="Up">↑</button>
+        <button type="button" data-key="down" aria-label="Down">↓</button>
+        <button type="button" data-key="right" aria-label="Right">→</button>
+        <button type="button" data-key="home">Home</button>
+        <button type="button" data-key="end">End</button>
+        <button type="button" data-key="pgup">PgUp</button>
+        <button type="button" data-key="pgdn">PgDn</button>
+        <button type="button" data-key="pipe">|</button>
+        <button type="button" data-key="slash">/</button>
+        <button type="button" data-key="tilde">~</button>
+        <button type="button" data-key="dash">-</button>
+        <button type="button" data-key="backtick">`</button>
+        <button type="button" data-key="semicolon">;</button>
+        <button type="button" data-key="quote">'</button>
+    </div>
+</div>
+<script src="./vendor/xterm/xterm.js?v=__HARBOR_ASSET_VERSION__"></script>
+<script src="./vendor/xterm/xterm-addon-fit.js?v=__HARBOR_ASSET_VERSION__"></script>
+<script src="./i18n.js?v=__HARBOR_ASSET_VERSION__"></script>
+<script src="./js/terminal.js?v=__HARBOR_ASSET_VERSION__"></script>
+</body>
+</html>

@@ -1,0 +1,217 @@
+name: Release
+
+run-name: Release ${{ github.ref_name }}
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  CARGO_PROFILE_DEV_DEBUG: 0
+  CARGO_PROFILE_TEST_DEBUG: 0
+  CARGO_PROFILE_RELEASE_DEBUG: false
+  RUST_BACKTRACE: 1
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
+
+jobs:
+
+  test:
+    name: test (release)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@1.89.0
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: native
+          cache-on-failure: true
+
+      - name: Check static frontend
+        run: |
+          node --version
+          find assets -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+          test -f assets/index.html
+          test -f assets/login.html
+          test ! -e assets/i18n-data.js
+          ! grep -R -E '<%|%>' assets --include='*.html'
+          ! grep -R -F '{{' assets --include='*.html'
+          ! grep -R -F '{%' assets --include='*.html'
+
+      - name: Format
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      - name: Ring only
+        run: |
+          if cargo tree | grep -q aws-lc; then
+            echo 'aws-lc leaked into the dependency tree' >&2
+            cargo tree | grep aws-lc
+            exit 1
+          fi
+
+      - name: Unit tests
+        run: cargo test --all-targets --locked -- --test-threads=8
+
+      - name: e2e tests
+        timeout-minutes: 20
+        run: bash scripts/e2e-sshd.sh test --ignored
+
+  build:
+    name: build ${{ matrix.target }}
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-musl
+            toolchain: stable
+          - target: i686-unknown-linux-musl
+            toolchain: stable
+          - target: i586-unknown-linux-musl
+            toolchain: stable
+          - target: aarch64-unknown-linux-musl
+            toolchain: stable
+          - target: armv7-unknown-linux-musleabihf
+            toolchain: stable
+          - target: armv7-unknown-linux-musleabi
+            toolchain: stable
+          - target: arm-unknown-linux-musleabihf
+            toolchain: stable
+          - target: arm-unknown-linux-musleabi
+            toolchain: stable
+          - target: armv5te-unknown-linux-musleabi
+            toolchain: stable
+          - target: riscv64gc-unknown-linux-musl
+            toolchain: stable
+          - target: mipsel-unknown-linux-musl
+            toolchain: nightly
+            build_std: true
+          - target: mips-unknown-linux-musl
+            toolchain: nightly
+            build_std: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain || 'stable' }}
+          components: rust-src
+
+      - name: Add target
+        if: matrix.build_std != true
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Cache cargo (${{ matrix.target }})
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: ${{ matrix.target }}
+          cache-on-failure: true
+
+      - name: Install cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
+
+      - name: Build
+        env:
+          CC: gcc
+        run: |
+          if [ "${{ matrix.target }}" = "i586-unknown-linux-musl" ]; then
+            export RUSTFLAGS="-C target-feature=+sse,+sse2 ${RUSTFLAGS:-}"
+          fi
+          if [ "${{ matrix.build_std }}" = "true" ]; then
+            export CROSS_BUILD_STD=1
+            cross build --release --target ${{ matrix.target }} -Zbuild-std=std,panic_abort
+          else
+            cross build --release --target ${{ matrix.target }}
+          fi
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/harbor-core dist/harbor-core
+
+      - name: Pack
+        run: |
+          VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          tar -czf "dist/harbor-core-${VERSION}-${{ matrix.target }}.tar.gz" -C dist harbor-core
+          rm -f dist/harbor-core
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: harbor-core-${{ matrix.target }}
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  release:
+    name: tag and publish release
+    needs: [test, build]
+    if: >-
+      always() &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) &&
+      needs.test.result == 'success' &&
+      needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve and create Cargo version tag
+        id: release
+        run: |
+          VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          TAG="v${VERSION}"
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            TAG="$GITHUB_REF_NAME"
+            if [[ "$TAG" != "v${VERSION}" ]]; then
+              echo "Tag $TAG does not match Cargo.toml version v${VERSION}" >&2
+              exit 1
+            fi
+          else
+            git fetch --tags origin
+            if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+              TAG_COMMIT=$(git rev-list -n 1 "$TAG")
+              if [[ "$TAG_COMMIT" != "$GITHUB_SHA" ]]; then
+                echo "::error::Version tag $TAG already points to another commit; bump Cargo.toml before publishing."
+                exit 1
+              fi
+            else
+              git tag "$TAG" "$GITHUB_SHA"
+              git push origin "$TAG"
+            fi
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+
+      - name: Download all target artifacts
+        if: steps.release.outputs.publish == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish release assets
+        if: steps.release.outputs.publish == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          files: dist/*.tar.gz
+          generate_release_notes: false

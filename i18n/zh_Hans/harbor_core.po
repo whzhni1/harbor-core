@@ -1,0 +1,456 @@
+# Local catalog for the strings the standalone bundle adds on top of the LuCI
+# plugin (login page, daemon-only messages). Merged with the upstream catalogs at
+# build time - a later file wins, so entries here override the plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: harbor-core\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_Hans\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+# --- login page -------------------------------------------------------------
+msgid "Sign in"
+msgstr "登录"
+
+msgid "Sign in to continue"
+msgstr "登录后继续"
+
+msgid "Sign in failed"
+msgstr "登录失败"
+
+msgid "Signing in…"
+msgstr "正在登录…"
+
+msgid "New password"
+msgstr "新密码"
+
+msgid "Repeat password"
+msgstr "确认密码"
+
+msgid "Local initialization required"
+msgstr "需要本地初始化"
+
+msgid "Run harbor-core init-auth on the device to configure authentication."
+msgstr "请在设备本机运行 harbor-core init-auth 初始化认证。"
+
+msgid "Authentication is not initialized; run harbor-core init-auth on the device"
+msgstr "认证尚未初始化，请在设备本机运行 harbor-core init-auth。"
+
+msgid "Enter the password"
+msgstr "请输入密码"
+
+msgid "Cannot reach the server"
+msgstr "无法连接到服务器"
+
+# --- daemon messages -------------------------------------------------------
+msgid "Authentication required"
+msgstr "需要登录验证"
+
+msgid "Invalid request"
+msgstr "请求无效"
+
+msgid "Invalid request body"
+msgstr "请求内容无效"
+
+msgid "Request body too large"
+msgstr "请求内容过大"
+
+msgid "Unknown endpoint: %s"
+msgstr "未知的接口：%s"
+
+msgid "Cannot store the password"
+msgstr "无法保存密码"
+
+msgid "Invalid upload directory"
+msgstr "上传目录无效"
+
+msgid "Invalid directory path"
+msgstr "目录路径无效"
+
+msgid "Invalid or interrupted upload request"
+msgstr "上传请求无效或已中断"
+
+msgid "Target is a directory"
+msgstr "目标是目录"
+
+msgid "Cannot create temporary file"
+msgstr "无法创建临时文件"
+
+msgid "The archive produced no files"
+msgstr "压缩包内没有文件"
+
+msgid "Archive task ended unexpectedly"
+msgstr "压缩任务异常结束"
+
+msgid "Path is outside the configured root whitelist"
+msgstr "路径不在已配置的根目录白名单内"
+
+msgid "archive already exists"
+msgstr "归档文件已存在"
+
+msgid "invalid or interrupted upload request"
+msgstr "上传请求无效或已中断"
+
+msgid "the destination already contains these entries"
+msgstr "目标位置已存在这些条目"
+
+msgid "SSH command timed out"
+msgstr "SSH 命令执行超时"
+
+msgid "Cannot inspect local tools"
+msgstr "无法检测本地工具"
+
+msgid "Cannot start a local transfer"
+msgstr "无法启动本地传输"
+
+msgid "Cannot run a local command"
+msgstr "无法执行本地命令"
+
+msgid "Cannot read the source"
+msgstr "无法读取源文件"
+
+msgid "Cannot write to the target"
+msgstr "无法写入目标位置"
+
+msgid "Invalid operation payload"
+msgstr "操作参数无效"
+
+msgid "Cannot read a directory"
+msgstr "无法读取目录"
+
+msgid "File is too large to open in the editor"
+msgstr "文件过大，无法在编辑器中打开"
+
+msgid "Content is too large"
+msgstr "内容过大"
+
+msgid "Invalid permission"
+msgstr "权限无效"
+
+msgid "Cannot hash the file"
+msgstr "无法计算文件校验值"
+
+msgid "Invalid search pattern"
+msgstr "无效的搜索模式"
+
+msgid "Cannot stat the remote file"
+msgstr "无法读取远程文件信息"
+
+msgid "Cannot stream from the device"
+msgstr "无法从设备读取数据"
+
+msgid "Cannot write to the device"
+msgstr "无法写入设备"
+
+msgid "Remote requests must use remote_action"
+msgstr "远程请求必须使用 remote_action"
+
+msgid "cannot open file"
+msgstr "无法打开文件"
+
+msgid "cannot seek to requested offset"
+msgstr "无法定位到指定偏移"
+
+msgid "file not found"
+msgstr "文件不存在"
+
+msgid "invalid path"
+msgstr "无效的路径"
+
+msgid "invalid request body"
+msgstr "请求内容无效"
+
+msgid "not a regular file"
+msgstr "不是普通文件"
+
+msgid "request body too large"
+msgstr "请求内容过大"
+
+msgid "source not found"
+msgstr "源文件不存在"
+
+msgid "system folder access is disabled"
+msgstr "系统文件夹访问已禁用"
+
+msgid "thumbnail not generated"
+msgstr "缩略图尚未生成"
+
+msgid "invalid search pattern"
+msgstr "无效的搜索模式"
+
+msgid "splice range exceeds the file size"
+msgstr "替换范围超出文件大小"
+
+msgid "write exceeds the file size"
+msgstr "写入范围超出文件大小"
+
+msgid "Invalid package name"
+msgstr "无效的软件包名称"
+
+msgid "Cannot create transfer task"
+msgstr "无法创建传输任务"
+
+msgid "invalid range"
+msgstr "范围无效"
+
+msgid "no staged changes"
+msgstr "没有待提交的改动"
+
+msgid "rewrite failed"
+msgstr "改写失败"
+
+msgid "the file is too large to rewrite over SSH"
+msgstr "文件太大，无法通过 SSH 在线改写"
+
+msgid "Cannot store the new password"
+msgstr "无法保存新密码"
+
+msgid "Cannot store the second factor"
+msgstr "无法保存两步验证信息"
+
+msgid "Cannot store the username"
+msgstr "无法保存用户名"
+
+msgid "Invalid wallpaper value"
+msgstr "壁纸参数无效"
+
+msgid "Unknown wallpaper"
+msgstr "未知的壁纸"
+
+msgid "Unknown wallpaper mode"
+msgstr "未知的壁纸模式"
+
+msgid "The current password is not correct"
+msgstr "当前密码不正确"
+
+msgid "The new password is too short"
+msgstr "新密码太短"
+
+msgid "The new password is too long"
+msgstr "新密码太长"
+
+msgid "The new password must not be blank"
+msgstr "新密码不能为空"
+
+msgid "The new password must be different from the current one"
+msgstr "新密码不能与当前密码相同"
+
+msgid "The two passwords do not match"
+msgstr "两次输入的密码不一致"
+
+msgid "Usernames may only use letters, digits, dot, dash, underscore or @ (2-32 characters)"
+msgstr "用户名只能包含字母、数字、点、短横线、下划线或 @（2-32 个字符）"
+
+msgid "Start the two-factor setup again"
+msgstr "请重新开始两步验证设置"
+
+msgid "That code is not valid"
+msgstr "动态码不正确"
+
+msgid "Two-factor code required"
+msgstr "需要两步验证动态码"
+
+msgid "Invalid two-factor code"
+msgstr "两步验证动态码不正确"
+
+msgid "Wrong username or password"
+msgstr "用户名或密码错误"
+
+msgid "Too many login attempts; try again later"
+msgstr "登录尝试次数过多，请稍后再试"
+
+msgid "Tool installation requires root access and a supported package manager"
+msgstr "安装工具需要 root 权限和受支持的包管理器"
+
+msgid "Username"
+msgstr "用户名"
+
+msgid "Two-factor code"
+msgstr "两步验证码"
+
+msgid "Password"
+msgstr "密码"
+
+msgid "Security verification"
+msgstr "安全验证"
+
+msgid "Close when finished"
+msgstr "传输完成后自动关闭"
+
+msgid "Elapsed"
+msgstr "耗时"
+
+msgid "Switch device"
+msgstr "切换设备"
+
+msgid "Open device root"
+msgstr "打开设备根目录"
+
+msgid "Authenticator code"
+msgstr "身份验证器代码"
+
+msgid "Enter your password before saving."
+msgstr "保存前请输入密码。"
+
+msgid "Save path policy"
+msgstr "保存路径策略"
+
+msgid "Verify identity"
+msgstr "安全验证"
+
+msgid "Verify system-folder access"
+msgstr "验证系统文件夹访问"
+
+msgid "Two-factor code, if enabled"
+msgstr "如已启用，请输入两步验证码"
+
+msgid "Auto-lock after timeout"
+msgstr "超时后自动锁定"
+
+msgid "Timeout duration in minutes"
+msgstr "超时时长（分钟）"
+
+msgid "Verify and open"
+msgstr "验证并打开"
+
+msgid "System folder access requires verification"
+msgstr "访问系统文件夹需要重新验证"
+
+msgid "Password verification failed"
+msgstr "密码验证失败"
+
+msgid "Two-factor verification failed"
+msgstr "两步验证失败"
+
+msgid "System folder required"
+msgstr "需要选择系统文件夹"
+
+msgid "Timeout must be between 1 and 10080 minutes"
+msgstr "超时时长必须在 1 至 10080 分钟之间"
+
+msgid "Daily"
+msgstr "每日"
+
+msgid "No such file or directory"
+msgstr "文件或目录不存在"
+
+msgid "Invalid file name"
+msgstr "文件名无效"
+
+msgid "Missing total_size"
+msgstr "缺少 total_size"
+
+msgid "The target file already exists"
+msgstr "目标文件已存在"
+
+msgid "Not enough free space for this upload"
+msgstr "剩余空间不足，无法完成本次上传"
+
+msgid "Cannot create the upload session"
+msgstr "无法创建上传会话"
+
+msgid "Missing session"
+msgstr "缺少会话标识"
+
+msgid "Unknown upload session"
+msgstr "上传会话不存在"
+
+msgid "Missing chunk index"
+msgstr "缺少分片序号"
+
+msgid "Chunk index out of range"
+msgstr "分片序号超出范围"
+
+msgid "Invalid session"
+msgstr "上传会话无效"
+
+msgid "Cannot write the chunk"
+msgstr "无法写入分片"
+
+msgid "The chunk upload stalled"
+msgstr "分片上传长时间无数据"
+
+msgid "Chunk is larger than the configured limit"
+msgstr "分片大小超过配置上限"
+
+msgid "Chunk checksum does not match"
+msgstr "分片校验值不匹配"
+
+msgid "Cannot store the chunk"
+msgstr "无法保存分片"
+
+msgid "Cannot assemble the upload"
+msgstr "无法合并上传的文件"
+
+msgid "Some chunks have not been uploaded yet"
+msgstr "仍有分片尚未上传"
+
+msgid "Missing task id"
+msgstr "缺少任务编号"
+
+msgid "Unknown task"
+msgstr "任务不存在"
+
+msgid "Too many transfers in flight"
+msgstr "同时进行的传输过多"
+
+msgid "Too many concurrent requests"
+msgstr "并发请求过多"
+
+msgid "The request took too long"
+msgstr "请求超时"
+
+msgid "Your session expired. Sign in again."
+msgstr "登录已过期，请重新登录。"
+
+msgid "For large text, select all, copy, paste and cut only affect the current page"
+msgstr "大文本编辑全选/复制/粘贴/剪切仅对当前页有效"
+
+msgid "Save changes before changing pages"
+msgstr "切换页面前请先保存更改"
+
+msgid "Page"
+msgstr "页"
+
+msgid "The write outcome is unknown. Check the file before retrying; the operation may still be running."
+msgstr "写入结果未知。重试前请检查文件；操作可能仍在进行。"
+
+msgid "Some earlier changes were written. Check the file before retrying."
+msgstr "先前的部分更改已写入。重试前请检查文件。"
+
+msgid "Staging path: %s"
+msgstr "暂存路径：%s"
+
+msgid "Requesting cancellation…"
+msgstr "正在请求取消…"
+
+msgid "Cancellation requested; waiting for the task to stop"
+msgstr "已请求取消，正在等待任务停止"
+
+msgid "Cancellation could not be confirmed; the task may still be running"
+msgstr "无法确认是否已请求取消，任务可能仍在运行"
+
+msgid "Cancellation is no longer available; waiting for the result"
+msgstr "此阶段无法再取消，正在等待最终结果"
+
+msgid "Transfer cancelled"
+msgstr "传输已取消"
+
+msgid "Transfer cancelled before publication; source and destination were retained."
+msgstr "发布前已取消传输，源文件和目标文件均已保留。"
+
+msgid "Transfer cancelled before publication; source and destination were retained, but staging files remain."
+msgstr "发布前已取消传输，源文件和目标文件均已保留，但暂存文件仍在。"
+
+msgid "Cancellation was requested, but the remote writer may still be running; inspect the staging directory before retrying"
+msgstr "已请求取消，但远程写入进程可能仍在运行；重试前请检查暂存目录。"
+
+msgid "openssh-sftp-server is required to open this device"
+msgstr "打开此设备需要 openssh-sftp-server"
+
+msgid "sftp is provided by the remote device"
+msgstr "sftp 由远端设备提供"
+
+msgid "SSH uses the built-in russh client; this tool is not installed locally"
+msgstr "SSH 由内置 russh 完成，不会在本机安装此工具"

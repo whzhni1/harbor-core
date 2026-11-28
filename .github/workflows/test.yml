@@ -1,0 +1,219 @@
+name: Test
+
+run-name: Test ${{ github.ref_name }}
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_x86_64_unknown_linux_musl:
+        description: 'x86_64-unknown-linux-musl'
+        type: boolean
+        default: false
+      build_i686_unknown_linux_musl:
+        description: 'i686-unknown-linux-musl'
+        type: boolean
+        default: false
+      build_i586_unknown_linux_musl:
+        description: 'i586-unknown-linux-musl'
+        type: boolean
+        default: false
+      build_aarch64_unknown_linux_musl:
+        description: 'aarch64-unknown-linux-musl'
+        type: boolean
+        default: false
+      build_armv7_unknown_linux_musleabihf:
+        description: 'armv7-unknown-linux-musleabihf'
+        type: boolean
+        default: false
+      build_armv7_unknown_linux_musleabi:
+        description: 'armv7-unknown-linux-musleabi'
+        type: boolean
+        default: false
+      build_arm_unknown_linux_musleabihf:
+        description: 'arm-unknown-linux-musleabihf'
+        type: boolean
+        default: false
+      build_arm_unknown_linux_musleabi:
+        description: 'arm-unknown-linux-musleabi'
+        type: boolean
+        default: false
+      build_armv5te_unknown_linux_musleabi:
+        description: 'armv5te-unknown-linux-musleabi'
+        type: boolean
+        default: false
+      build_riscv64gc_unknown_linux_musl:
+        description: 'riscv64gc-unknown-linux-musl'
+        type: boolean
+        default: false
+      build_mipsel_unknown_linux_musl:
+        description: 'mipsel-unknown-linux-musl'
+        type: boolean
+        default: false
+      build_mips_unknown_linux_musl:
+        description: 'mips-unknown-linux-musl'
+        type: boolean
+        default: false
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  CARGO_PROFILE_DEV_DEBUG: 0
+  CARGO_PROFILE_TEST_DEBUG: 0
+  CARGO_PROFILE_RELEASE_DEBUG: false
+  RUST_BACKTRACE: 1
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
+
+jobs:
+
+  test:
+    name: test (native)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@1.89.0
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: native
+          cache-on-failure: true
+
+      - name: Check static frontend
+        run: |
+          node --version
+          find assets -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+          test -f assets/index.html
+          test -f assets/login.html
+          test ! -e assets/i18n-data.js
+          ! grep -R -E '<%|%>' assets --include='*.html'
+          ! grep -R -F '{{' assets --include='*.html'
+          ! grep -R -F '{%' assets --include='*.html'
+
+      - name: Format
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      - name: Ring only
+        run: |
+          if cargo tree | grep -q aws-lc; then
+            echo 'aws-lc leaked into the dependency tree' >&2
+            cargo tree | grep aws-lc
+            exit 1
+          fi
+
+      - name: Unit tests
+        run: cargo test --all-targets --locked -- --test-threads=8
+
+      - name: e2e tests
+        timeout-minutes: 20
+        run: bash scripts/e2e-sshd.sh test --ignored
+
+  prepare:
+    name: select architectures
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.gen.outputs.matrix }}
+      any: ${{ steps.gen.outputs.any }}
+    steps:
+      - id: gen
+        run: |
+          inc=()
+          add() {
+            local triple="$1" toolchain="$2" extra="$3" picked="$4"
+            if [ "$picked" = "true" ]; then
+              inc+=("{\"target\":\"$triple\",\"toolchain\":\"$toolchain\"$extra}")
+            fi
+          }
+          add x86_64-unknown-linux-musl stable '' "${{ inputs.build_x86_64_unknown_linux_musl }}"
+          add i686-unknown-linux-musl stable '' "${{ inputs.build_i686_unknown_linux_musl }}"
+          add i586-unknown-linux-musl stable '' "${{ inputs.build_i586_unknown_linux_musl }}"
+          add aarch64-unknown-linux-musl stable '' "${{ inputs.build_aarch64_unknown_linux_musl }}"
+          add armv7-unknown-linux-musleabihf stable '' "${{ inputs.build_armv7_unknown_linux_musleabihf }}"
+          add armv7-unknown-linux-musleabi stable '' "${{ inputs.build_armv7_unknown_linux_musleabi }}"
+          add arm-unknown-linux-musleabihf stable '' "${{ inputs.build_arm_unknown_linux_musleabihf }}"
+          add arm-unknown-linux-musleabi stable '' "${{ inputs.build_arm_unknown_linux_musleabi }}"
+          add armv5te-unknown-linux-musleabi stable '' "${{ inputs.build_armv5te_unknown_linux_musleabi }}"
+          add riscv64gc-unknown-linux-musl stable '' "${{ inputs.build_riscv64gc_unknown_linux_musl }}"
+          add mipsel-unknown-linux-musl nightly ',"build_std":true' "${{ inputs.build_mipsel_unknown_linux_musl }}"
+          add mips-unknown-linux-musl nightly ',"build_std":true' "${{ inputs.build_mips_unknown_linux_musl }}"
+          if [ "${#inc[@]}" -eq 0 ]; then
+            echo 'matrix={"include":[{"target":"none"}]}' >> "$GITHUB_OUTPUT"
+            echo 'any=false' >> "$GITHUB_OUTPUT"
+          else
+            printf 'matrix={"include":[%s]}\n' "$(IFS=,; echo "${inc[*]}")" >> "$GITHUB_OUTPUT"
+            echo 'any=true' >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    name: build ${{ matrix.target }}
+    needs: prepare
+    if: needs.prepare.outputs.any == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain || 'stable' }}
+          components: rust-src
+
+      - name: Add target
+        if: matrix.build_std != true
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Cache cargo (${{ matrix.target }})
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: ${{ matrix.target }}
+          cache-on-failure: true
+
+      - name: Install cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
+
+      - name: Build
+        env:
+          CC: gcc
+        run: |
+          if [ "${{ matrix.target }}" = "i586-unknown-linux-musl" ]; then
+            export RUSTFLAGS="-C target-feature=+sse,+sse2 ${RUSTFLAGS:-}"
+          fi
+          if [ "${{ matrix.build_std }}" = "true" ]; then
+            export CROSS_BUILD_STD=1
+            cross build --release --target ${{ matrix.target }} -Zbuild-std=std,panic_abort
+          else
+            cross build --release --target ${{ matrix.target }}
+          fi
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/harbor-core dist/harbor-core
+
+      - name: Pack
+        run: |
+          VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          tar -czf "dist/harbor-core-${VERSION}-${{ matrix.target }}.tar.gz" -C dist harbor-core
+          rm -f dist/harbor-core
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: harbor-core-${{ matrix.target }}
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
